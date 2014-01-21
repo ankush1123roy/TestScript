@@ -29,3 +29,8 @@ Test Script to Check Clinet Server Protocol in C
 			 4) File that doesnot have permission to be downloaded
     
     Multiple Instances would of these would be run to check for multiple client handling by the server"")
+    
+    Two test files
+    
+    1. Large (8995 Characters) test file 
+    2. Small (42 Characters ) test file

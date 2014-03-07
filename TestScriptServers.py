@@ -32,6 +32,9 @@
 '''
 import os
 import time
+
+class run_server():
+	
 class check_servers():
 	
 	def __init__(self, NO_CONN, DELAY):

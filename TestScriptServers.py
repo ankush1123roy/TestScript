@@ -35,6 +35,41 @@ import time
 
 class run_server():
 	
+	def __init__(self, F, P, S, LF, LP, LS, PATH):
+		self.path = PATH
+		self.PORT_SERV_F = F
+		self.PORT_SERV_P = P
+		self.PORT_SERV_S = S
+		self.LOG_SERV_F  = LF
+		self.LOG_SERV_P  = LP
+		self.LOG_SERV_S  = LS
+		self.path = PATH
+		
+	def untar(self):
+		Submissions = os.listdir(self.path)
+		os.chdir(path)
+
+		for i in Submissions:
+			print 'Extracting individual Submissions%s'%i,'\n'
+			os.system('tar -xvf %s'%i)
+			os.system('rm -r %s'%i)
+		
+	def run_server(self,NAME):
+		print "Running Forked Server of %s"%NAME
+		os.system('./server_f' + ' ' + self.PORT_SERV_F + ' ' + self.path + '/'+	' ' + self.path + '/' + NAME + '/' + self.LOG_SERV_F)
+
+		print "Running Threaded Server of %s"%NAME
+		os.system('./server_p' + ' ' + self.PORT_SERV_P + ' ' + self.path + '/'+	' ' + self.path + '/' + NAME + '/' + self.LOG_SERV_P)
+		
+		print "Running Select Server of %s"%NAME
+		os.system('./server_s' + ' ' + self.PORT_SERV_S + ' ' + self.path + '/'+	' ' + self.path + '/' + NAME + '/' + self.LOG_SERV_S)
+		
+	def kill_server(self):
+		os.system('pkill server_f') 
+		os.system('pkill server_p')
+		os.system('pkill server_s')
+
+		
 class check_servers():
 	
 	def __init__(self, NO_CONN, DELAY):
@@ -43,12 +78,13 @@ class check_servers():
 		
 	def check_fork(PORT):
 		for i in range(self.no_conn):
+			
+			print 'Testing for Small files'
 			os.system('(echo -ne "GET /small_file.txt HTTP/1.1\nFrom: \
 				someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
 				&& sleep 5) | nc 127.0.0.1 ' + PORT)
 
 			print 'Testing for Large File', '\n'
-
 			os.system('(echo -ne "GET /largefile.txt HTTP/1.1\nFrom: \
 				someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
 				&& sleep 5) | nc 127.0.0.1 ' + PORT)
@@ -121,139 +157,37 @@ class check_servers():
 				&& sleep 5) | nc 127.0.0.1 ' + PORT)
 
 		os.system('pkill server_s')
+
+
+
+def main():
+	RUN  = run_server('8000', '8001', '8002', flog.txt, plog.txt, slog.txt, os.system('pwd'))
+	RUN.untar()
+	Individual_Submissions = os.listdir(os.system('pwd'))
+	CHECK = check_servers()
+	for i in Individual_Submissions:
+		print 'Enter Directory of %s'%i
+		print '\n'
+		os.chdir(i)
+		os.system('make')
+		run_server(self,NAME)
+		print 'Checking FORK server'
+		CHECK.check_fork('8000')
 		
+		print 'Checking Thread server'
+		CHECK.check_fork('8001')
 		
-
-import pdb
-
-path = '/home/ankush/Cmput379W/TEST'
-
-
-# Ports and names of log files
-
-PORT_SERV_F, PORT_SERV_P, PORT_SERV_S = '8000', '8001', '8002'
-LOG_SERV_F, LOG_SERV_P, LOG_SERV_S = 'flog.txt', 'plog.txt', 'slog.txt'
-
-
-# Untaring the tarfile containing all submissions
-
-Submissions = os.listdir(path)
-os.chdir(path)
-print 'Extracting individual Submissions','\n'
-
-for i in Submissions:
-	os.system('tar -xvf %s'%i)
-	os.system('rm -r %s'%i)
-
-Individual_Submissions = os.listdir(path)
-for i in Individual_Submissions:
+		print 'Checking Select server'
+		CHECK.check_fork('8002')
+		RUN.kill_server()
 	
-	print 'Enter Directory of %s'%i
-	print '\n'
-	os.chdir(i)
-	os.system('make')
 	SERV_PATH = path
 	
 	
 	print 'Checking server_f ...'
 	
 	
-	os.system('./server_f' + ' ' + PORT_SERV_F + ' ' + SERV_PATH + '/'+	' ' + SERV_PATH + '/' + i + '/' +LOG_SERV_F)
-	''' Query to test server_f whose contents are written in flog.txt'''
 
-	print 'Testing for Small File', '\n'
-	for i in range(10):
-		os.system('(echo -ne "GET /small_file.txt HTTP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
-			 && sleep 5) | nc 127.0.0.1 ' + PORT_SERV_F)
-
-	print 'Testing for Large File', '\n'
-	for i in range(10):
-		os.system('(echo -ne "GET /largefile.txt HTTP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
-			 && sleep 5) | nc 127.0.0.1 ' + PORT_SERV_F)
-
-	print 'Testing for Missing File', '\n'
-	for i in range(2):
-		os.system('(echo -ne "GET /largefile.txt HTTP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
-			 && sleep 5) | nc 127.0.0.1 ' + PORT_SERV_F)
-
-	print 'Testing for Wrong Query', '\n'
-	for i in range(10):
-		os.system('(echo -ne "GET /largefile.txt HP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n" \
-			&& sleep 5) | nc 127.0.0.1 ' + PORT_SERV_F)
-
-	os.system('pkill server_f')
-
-
-
-	print 'Checking server_p ...'
-	
-	os.system('./server_p' + ' ' + PORT_SERV_P + ' ' + SERV_PATH + '/'+ ' ' + SERV_PATH+ '/' +i + '/' +LOG_SERV_P)
-	''' Query to test server_f whose contents are written in flog.txt'''
-
-	print 'Testing for Small File', '\n'
-	for i in range(10):
-		os.system('(echo -ne "GET /small_file.txt HTTP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
-			 && sleep 5) | nc 127.0.0.1 ' + PORT_SERV_P)
-
-	print 'Testing for Large File', '\n'
-	for i in range(10):
-		os.system('(echo -ne "GET /largefile.txt HTTP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
-			 && sleep 5) | nc 127.0.0.1 ' + PORT_SERV_P)
-
-	print 'Testing for Missing File', '\n'
-	for i in range(2):
-		os.system('(echo -ne "GET /largefile.txt HTTP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
-			 && sleep 5) | nc 127.0.0.1 ' + PORT_SERV_P)
-
-	print 'Testing for Wrong Query', '\n'
-	for i in range(10):
-		os.system('(echo -ne "GET /largefile.txt HP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n" \
-			&& sleep 5) | nc 127.0.0.1 ' + PORT_SERV_P)
-
-	os.system('pkill server_p')
-
-
-
-
-	print 'Checking server_s ...'
-	
-	os.system('./server_s' + ' ' + PORT_SERV_S + ' ' + SERV_PATH + '/'+ ' ' + SERV_PATH + '/'+ i + '/' + LOG_SERV_S)
-	''' Query to test server_f whose contents are written in flog.txt'''
-
-	print 'Testing for Small File', '\n'
-	for i in range(10):
-		os.system('(echo -ne "GET /small_file.txt HTTP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
-			 && sleep 5) | nc 127.0.0.1 ' + PORT_SERV_S)
-
-	print 'Testing for Large File', '\n'
-	for i in range(10):
-		os.system('(echo -ne "GET /largefile.txt HTTP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
-			 && sleep 5) | nc 127.0.0.1 ' + PORT_SERV_S)
-
-	print 'Testing for Missing File', '\n'
-	for i in range(2):
-		os.system('(echo -ne "GET /largefile.txt HTTP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
-			 && sleep 5) | nc 127.0.0.1 ' + PORT_SERV_S)
-
-	print 'Testing for Wrong Query', '\n'
-	for i in range(10):
-		os.system('(echo -ne "GET /largefile.txt HP/1.1\nFrom: \
-			someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n" \
-			&& sleep 5) | nc 127.0.0.1 ' + PORT_SERV_S)
-
-	os.system('pkill server_s')
-	os.chdir('../')
 
 
 

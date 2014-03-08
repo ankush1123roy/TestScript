@@ -14,8 +14,8 @@
 
 	./server_f port /path_of_docs /path_of_log_file
 
-	QUERY
-	------
+	QUERY TEST
+	-----------
 
 	(echo -ne "GET /small_file.txt HTTP/1.1\nFrom: someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n" && sleep 5) | nc 127.0.0.1 8000
 
@@ -43,11 +43,12 @@ class run_server():
 		self.LOG_SERV_F  = LF
 		self.LOG_SERV_P  = LP
 		self.LOG_SERV_S  = LS
-		self.path = PATH
+
 		
 	def untar(self):
+		
 		Submissions = os.listdir(self.path)
-		os.chdir(path)
+		os.chdir(self.path)
 
 		for i in Submissions:
 			print 'Extracting individual Submissions%s'%i,'\n'
@@ -55,14 +56,15 @@ class run_server():
 			os.system('rm -r %s'%i)
 		
 	def run_server(self,NAME):
+		import pdb;pdb.set_trace()
 		print "Running Forked Server of %s"%NAME
-		os.system('./server_f' + ' ' + self.PORT_SERV_F + ' ' + self.path + '/'+	' ' + self.path + '/' + NAME + '/' + self.LOG_SERV_F)
+		os.system('./server_f' + ' ' + self.PORT_SERV_F + ' ' + self.path + NAME+ '/'+ ' ' + self.path + NAME + '/' + self.LOG_SERV_F)
 
 		print "Running Threaded Server of %s"%NAME
-		os.system('./server_p' + ' ' + self.PORT_SERV_P + ' ' + self.path + '/'+	' ' + self.path + '/' + NAME + '/' + self.LOG_SERV_P)
+		os.system('./server_p' + ' ' + self.PORT_SERV_P + ' ' + self.path + NAME+ '/'+ ' ' + self.path + NAME + '/' + self.LOG_SERV_P)
 		
 		print "Running Select Server of %s"%NAME
-		os.system('./server_s' + ' ' + self.PORT_SERV_S + ' ' + self.path + '/'+	' ' + self.path + '/' + NAME + '/' + self.LOG_SERV_S)
+		os.system('./server_s' + ' ' + self.PORT_SERV_S + ' ' + self.path + NAME+ '/'+ ' ' + self.path + NAME + '/' + self.LOG_SERV_S)
 		
 	def kill_server(self):
 		os.system('pkill server_f') 
@@ -77,6 +79,8 @@ class check_servers():
 		self.delay = DELAY
 		
 	def check_fork(PORT):
+
+
 		for i in range(self.no_conn):
 			
 			print 'Testing for Small files'
@@ -106,7 +110,10 @@ class check_servers():
 		
 	def check_thread(PORT):
 		
+
 		for i in range(self.no_conn):
+
+			print 'Testing for Small files'
 			os.system('(echo -ne "GET /small_file.txt HTTP/1.1\nFrom: \
 				someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
 				&& sleep 5) | nc 127.0.0.1 ' + PORT)
@@ -131,9 +138,12 @@ class check_servers():
 
 		os.system('pkill server_p')
 		
+
 	def check_select(PORT):
 
 		for i in range(self.no_conn):
+
+			print 'Testing for Small files'
 			os.system('(echo -ne "GET /small_file.txt HTTP/1.1\nFrom: \
 				someuser@somewhere.org\nUser-Agent: Bloatzilla/7.0\n\n"\
 				&& sleep 5) | nc 127.0.0.1 ' + PORT)
@@ -161,31 +171,36 @@ class check_servers():
 
 
 def main():
-	RUN  = run_server('8000', '8001', '8002', flog.txt, plog.txt, slog.txt, os.system('pwd'))
-	RUN.untar()
-	Individual_Submissions = os.listdir(os.system('pwd'))
-	CHECK = check_servers()
+	PATH = '/cshome/ankush2/Desktop/TEST/TestScript/TEST_SIMULATE/'
+	RUN  = run_server('8000', '8001', '8002', 'flog.txt', 'plog.txt', 'slog.txt', PATH )
+	import pdb;pdb.set_trace()
+#	RUN.untar()
+	Individual_Submissions = os.listdir(PATH)
+	CHECK = check_servers(10, 4)
 	for i in Individual_Submissions:
 		print 'Enter Directory of %s'%i
 		print '\n'
-		os.chdir(i)
+		os.chdir(PATH  + i)
 		os.system('make')
-		run_server(self,NAME)
+		RUN.run_server(i)
 		print 'Checking FORK server'
 		CHECK.check_fork('8000')
 		
 		print 'Checking Thread server'
-		CHECK.check_fork('8001')
+		CHECK.check_thread('8001')
 		
 		print 'Checking Select server'
-		CHECK.check_fork('8002')
+		CHECK.check_select('8002')
+
+
 		RUN.kill_server()
+		os.chdir('../')
 	
-	SERV_PATH = path
 	
-	
-	print 'Checking server_f ...'
-	
+	print 'Checking server_f ....'
+
+if __name__ == '__main__':
+	main()
 	
 
 
